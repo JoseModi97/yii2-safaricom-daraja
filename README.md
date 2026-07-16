@@ -51,23 +51,23 @@ composer update josemodi97/yii2-safaricom-daraja
 
 Add the component to the Yii2 application config.
 
-Path from Yii2 app root for a basic app: `config/web.php`
+Basic Yii2 template path from app root: `config/web.php`
 
-Path from Yii2 app root for an advanced app:
+Advanced Yii2 template paths from project root:
 
 - Frontend: `frontend/config/main.php`
 - Backend: `backend/config/main.php`
 - Console: `console/config/main.php`
 
 ```php
-'components' => array(
-    'daraja' => array(
+'components' => [
+    'daraja' => [
         'class' => 'Safaricom\\Daraja\\Daraja',
         'environment' => 'sandbox',
         'consumerKey' => getenv('DARAJA_CONSUMER_KEY'),
         'consumerSecret' => getenv('DARAJA_CONSUMER_SECRET'),
-    ),
-),
+    ],
+],
 ```
 
 Use `environment => 'production'` for `https://api.safaricom.co.ke`.
@@ -81,14 +81,14 @@ Common paths from Yii2 app root:
 - Advanced app common params: `common/config/params.php`
 
 ```php
-'params' => array(
+'params' => [
     'daraja.shortCode' => getenv('DARAJA_SHORT_CODE'),
     'daraja.passkey' => getenv('DARAJA_PASSKEY'),
     'daraja.initiatorName' => getenv('DARAJA_INITIATOR_NAME'),
     'daraja.initiatorPassword' => getenv('DARAJA_INITIATOR_PASSWORD'),
     'daraja.certificatePath' => '@app/certs/SafaricomSandboxCertificate.cer',
     'daraja.callbackBaseUrl' => getenv('DARAJA_CALLBACK_BASE_URL'),
-),
+],
 ```
 
 Do not hard-code real consumer keys, secrets, passkeys, initiator passwords, or API keys in code. The Postman collection may contain sample values; move all secrets to environment variables.
@@ -123,12 +123,12 @@ Use the generic endpoint catalog for any endpoint:
 ```php
 use Safaricom\Daraja\EndpointCatalog;
 
-$response = Yii::$app->daraja->request(EndpointCatalog::PULL_QUERY, array(
+$response = Yii::$app->daraja->request(EndpointCatalog::PULL_QUERY, [
     'ShortCode' => Yii::$app->params['daraja.shortCode'],
     'StartDate' => '2026-07-01 00:00:00',
     'EndDate' => '2026-07-16 23:59:59',
     'OffSetValue' => '0',
-));
+]);
 ```
 
 ## Yii2 MVC Pattern
@@ -163,12 +163,12 @@ class StkPushForm extends Model
 
     public function rules()
     {
-        return array(
-            array(array('phoneNumber', 'amount', 'accountReference'), 'required'),
-            array('amount', 'number', 'min' => 1),
-            array(array('accountReference', 'transactionDesc'), 'string', 'max' => 100),
-            array('phoneNumber', 'match', 'pattern' => '/^2547[0-9]{8}$/', 'message' => 'Use format 2547XXXXXXXX.'),
-        );
+        return [
+            [['phoneNumber', 'amount', 'accountReference'], 'required'],
+            ['amount', 'number', 'min' => 1],
+            [['accountReference', 'transactionDesc'], 'string', 'max' => 100],
+            ['phoneNumber', 'match', 'pattern' => '/^2547[0-9]{8}$/', 'message' => 'Use format 2547XXXXXXXX.'],
+        ];
     }
 
     public function send()
@@ -181,7 +181,7 @@ class StkPushForm extends Model
         $passkey = Yii::$app->params['daraja.passkey'];
         $timestamp = date('YmdHis');
 
-        return Yii::$app->daraja->stkPush(array(
+        return Yii::$app->daraja->stkPush([
             'BusinessShortCode' => $shortCode,
             'Password' => Yii::$app->daraja->generateStkPassword($shortCode, $passkey, $timestamp),
             'Timestamp' => $timestamp,
@@ -193,7 +193,7 @@ class StkPushForm extends Model
             'CallBackURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/stk-callback',
             'AccountReference' => $this->accountReference,
             'TransactionDesc' => $this->transactionDesc ? $this->transactionDesc : 'Payment',
-        ));
+        ]);
     }
 }
 ```
@@ -226,14 +226,14 @@ class DarajaController extends Controller
         $model->load(Yii::$app->request->post(), '');
 
         if (!$model->validate()) {
-            return array('ok' => false, 'errors' => $model->getErrors());
+            return ['ok' => false, 'errors' => $model->getErrors()];
         }
 
         try {
-            return array('ok' => true, 'data' => $model->send());
+            return ['ok' => true, 'data' => $model->send()];
         } catch (\Exception $e) {
             Yii::error($e->getMessage(), __METHOD__);
-            return array('ok' => false, 'message' => $e->getMessage());
+            return ['ok' => false, 'message' => $e->getMessage()];
         }
     }
 
@@ -255,7 +255,7 @@ class DarajaController extends Controller
          * $payload['Body']['stkCallback']['ResultDesc']
          */
 
-        return array('ResultCode' => 0, 'ResultDesc' => 'Accepted');
+        return ['ResultCode' => 0, 'ResultDesc' => 'Accepted'];
     }
 }
 ```
@@ -269,7 +269,7 @@ $timestamp = date('YmdHis');
 $shortCode = Yii::$app->params['daraja.shortCode'];
 $password = Yii::$app->daraja->generateStkPassword($shortCode, Yii::$app->params['daraja.passkey'], $timestamp);
 
-$response = Yii::$app->daraja->stkPush(array(
+$response = Yii::$app->daraja->stkPush([
     'BusinessShortCode' => $shortCode,
     'Password' => $password,
     'Timestamp' => $timestamp,
@@ -281,18 +281,18 @@ $response = Yii::$app->daraja->stkPush(array(
     'CallBackURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/stk-callback',
     'AccountReference' => 'INV-1001',
     'TransactionDesc' => 'Invoice payment',
-));
+]);
 ```
 
 Query an STK payment using the `CheckoutRequestID` returned by Safaricom:
 
 ```php
-$response = Yii::$app->daraja->stkQuery(array(
+$response = Yii::$app->daraja->stkQuery([
     'BusinessShortCode' => $shortCode,
     'Password' => $password,
     'Timestamp' => $timestamp,
     'CheckoutRequestID' => 'ws_CO_...',
-));
+]);
 ```
 
 ## C2B URL Registration and Simulation
@@ -305,24 +305,24 @@ Put the registration/simulation calls in a controller action, console command, o
 Register confirmation and validation URLs:
 
 ```php
-$response = Yii::$app->daraja->c2bRegisterUrl(array(
+$response = Yii::$app->daraja->c2bRegisterUrl([
     'ShortCode' => Yii::$app->params['daraja.shortCode'],
     'ResponseType' => 'Completed',
     'ConfirmationURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/c2b-confirmation',
     'ValidationURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/c2b-validation',
-));
+]);
 ```
 
 Sandbox C2B simulation:
 
 ```php
-$response = Yii::$app->daraja->c2bSimulate(array(
+$response = Yii::$app->daraja->c2bSimulate([
     'ShortCode' => Yii::$app->params['daraja.shortCode'],
     'CommandID' => 'CustomerPayBillOnline',
     'Amount' => '10',
     'Msisdn' => '254700000000',
     'BillRefNumber' => 'INV-1001',
-));
+]);
 ```
 
 Callback examples can be added as methods inside the same web controller.
@@ -335,7 +335,7 @@ public function actionC2bValidation()
     Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
     Yii::info(json_decode(Yii::$app->request->getRawBody(), true), 'daraja.c2b.validation');
 
-    return array('ResultCode' => 0, 'ResultDesc' => 'Accepted');
+    return ['ResultCode' => 0, 'ResultDesc' => 'Accepted'];
 }
 
 public function actionC2bConfirmation()
@@ -343,7 +343,7 @@ public function actionC2bConfirmation()
     Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
     Yii::info(json_decode(Yii::$app->request->getRawBody(), true), 'daraja.c2b.confirmation');
 
-    return array('ResultCode' => 0, 'ResultDesc' => 'Accepted');
+    return ['ResultCode' => 0, 'ResultDesc' => 'Accepted'];
 }
 ```
 
@@ -369,7 +369,7 @@ $credential = Yii::$app->daraja->generateSecurityCredential(
 B2C payment request:
 
 ```php
-$response = Yii::$app->daraja->b2cPayment(array(
+$response = Yii::$app->daraja->b2cPayment([
     'InitiatorName' => Yii::$app->params['daraja.initiatorName'],
     'SecurityCredential' => $credential,
     'CommandID' => 'BusinessPayment',
@@ -380,13 +380,13 @@ $response = Yii::$app->daraja->b2cPayment(array(
     'QueueTimeOutURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/timeout',
     'ResultURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/result',
     'Occasion' => 'Refund',
-));
+]);
 ```
 
 B2B payment request:
 
 ```php
-$response = Yii::$app->daraja->b2bPayment(array(
+$response = Yii::$app->daraja->b2bPayment([
     'Initiator' => Yii::$app->params['daraja.initiatorName'],
     'SecurityCredential' => $credential,
     'CommandID' => 'BusinessPayBill',
@@ -399,13 +399,13 @@ $response = Yii::$app->daraja->b2bPayment(array(
     'Remarks' => 'Supplier payment',
     'QueueTimeOutURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/timeout',
     'ResultURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/result',
-));
+]);
 ```
 
 B2Pochi payment request:
 
 ```php
-$response = Yii::$app->daraja->b2PochiPayment(array(
+$response = Yii::$app->daraja->b2PochiPayment([
     'OriginatorConversationID' => uniqid('b2pochi-', true),
     'InitiatorName' => Yii::$app->params['daraja.initiatorName'],
     'SecurityCredential' => $credential,
@@ -417,7 +417,7 @@ $response = Yii::$app->daraja->b2PochiPayment(array(
     'QueueTimeOutURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/timeout',
     'ResultURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/result',
     'Occasion' => 'Payment',
-));
+]);
 ```
 
 ## Reversal, Transaction Status, and Account Balance
@@ -433,7 +433,7 @@ Suggested paths from Yii2 app root:
 Reverse a transaction:
 
 ```php
-$response = Yii::$app->daraja->reversal(array(
+$response = Yii::$app->daraja->reversal([
     'Initiator' => Yii::$app->params['daraja.initiatorName'],
     'SecurityCredential' => $credential,
     'CommandID' => 'TransactionReversal',
@@ -445,13 +445,13 @@ $response = Yii::$app->daraja->reversal(array(
     'QueueTimeOutURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/timeout',
     'Remarks' => 'Customer refund',
     'Occasion' => 'Refund',
-));
+]);
 ```
 
 Query transaction status:
 
 ```php
-$response = Yii::$app->daraja->transactionStatus(array(
+$response = Yii::$app->daraja->transactionStatus([
     'Initiator' => Yii::$app->params['daraja.initiatorName'],
     'SecurityCredential' => $credential,
     'CommandID' => 'TransactionStatusQuery',
@@ -462,13 +462,13 @@ $response = Yii::$app->daraja->transactionStatus(array(
     'QueueTimeOutURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/timeout',
     'Remarks' => 'Status query',
     'Occasion' => 'Status',
-));
+]);
 ```
 
 Query account balance:
 
 ```php
-$response = Yii::$app->daraja->accountBalance(array(
+$response = Yii::$app->daraja->accountBalance([
     'Initiator' => Yii::$app->params['daraja.initiatorName'],
     'SecurityCredential' => $credential,
     'CommandID' => 'AccountBalance',
@@ -477,7 +477,7 @@ $response = Yii::$app->daraja->accountBalance(array(
     'Remarks' => 'Balance query',
     'QueueTimeOutURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/timeout',
     'ResultURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/result',
-));
+]);
 ```
 
 ## M-Pesa Ratiba Standing Orders
@@ -493,7 +493,7 @@ Suggested paths from Yii2 app root:
 Create a standing order for Paybill:
 
 ```php
-$response = Yii::$app->daraja->ratibaCreatePaybill(array(
+$response = Yii::$app->daraja->ratibaCreatePaybill([
     'StandingOrderName' => 'Monthly fee',
     'BusinessShortCode' => '174379',
     'TransactionType' => 'Standing Order Customer Pay Bill',
@@ -506,13 +506,13 @@ $response = Yii::$app->daraja->ratibaCreatePaybill(array(
     'Frequency' => '1',
     'StartDate' => '20260716',
     'EndDate' => '20270716',
-));
+]);
 ```
 
 Create a standing order for Buy Goods:
 
 ```php
-$response = Yii::$app->daraja->ratibaCreateBuyGoods(array(
+$response = Yii::$app->daraja->ratibaCreateBuyGoods([
     'StandingOrderName' => 'Merchant subscription',
     'BusinessShortCode' => '300584',
     'TransactionType' => 'Standing Order Customer Pay Merchant',
@@ -525,7 +525,7 @@ $response = Yii::$app->daraja->ratibaCreateBuyGoods(array(
     'Frequency' => '1',
     'StartDate' => '20260716',
     'EndDate' => '20270716',
-));
+]);
 ```
 
 ## Lipa na Bonga
@@ -541,22 +541,22 @@ Suggested paths from Yii2 app root:
 Redeem Bonga points to Paybill:
 
 ```php
-$response = Yii::$app->daraja->lipaNaBongaRedeemPaybill(array(
+$response = Yii::$app->daraja->lipaNaBongaRedeemPaybill([
     'msisdn' => '254700000000',
     'amount' => 100,
     'bongaPoints' => 500,
     'conversionRate' => 0.2,
     'shortCode' => Yii::$app->params['daraja.shortCode'],
     'accountNumber' => 'ACC-1001',
-));
+]);
 ```
 
 Calculate points:
 
 ```php
-$response = Yii::$app->daraja->lipaNaBongaCalculatePoints(array(
+$response = Yii::$app->daraja->lipaNaBongaCalculatePoints([
     'points' => '500',
-));
+]);
 ```
 
 ## IMSI and SWAP CheckATI
@@ -570,13 +570,13 @@ Suggested paths from Yii2 app root:
 - Web controller: `controllers/DarajaController.php`
 
 ```php
-$response = Yii::$app->daraja->imsiCheckAti(array(
+$response = Yii::$app->daraja->imsiCheckAti([
     'customerNumber' => '254700000000',
-));
+]);
 
-$response = Yii::$app->daraja->swapCheckAti(array(
+$response = Yii::$app->daraja->swapCheckAti([
     'customerNumber' => '254700000000',
-));
+]);
 ```
 
 ## Pull Transactions API
@@ -592,23 +592,23 @@ Suggested paths from Yii2 app root:
 Register a callback URL:
 
 ```php
-$response = Yii::$app->daraja->pullRegister(array(
+$response = Yii::$app->daraja->pullRegister([
     'ShortCode' => Yii::$app->params['daraja.shortCode'],
     'RequestType' => 'Pull',
     'NominatedNumber' => '254700000000',
     'CallBackURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/pull-callback',
-));
+]);
 ```
 
 Query transactions:
 
 ```php
-$response = Yii::$app->daraja->pullQuery(array(
+$response = Yii::$app->daraja->pullQuery([
     'ShortCode' => Yii::$app->params['daraja.shortCode'],
     'StartDate' => '2026-07-01 00:00:00',
     'EndDate' => '2026-07-16 23:59:59',
     'OffSetValue' => '0',
-));
+]);
 ```
 
 ## IoT SIM Portal APIs
@@ -626,7 +626,7 @@ The IoT SIM portal endpoints from the collection use the same `request()` engine
 ```php
 use Safaricom\Daraja\EndpointCatalog;
 
-$headers = array(
+$headers = [
     'x-correlation-conversationid' => uniqid('', true),
     'x-source-system' => 'web-portal',
     'x-api-key' => getenv('DARAJA_IOT_API_KEY'),
@@ -634,13 +634,13 @@ $headers = array(
     'X-MSISDN' => getenv('DARAJA_IOT_MSISDN'),
     'X-App' => 'web-portal',
     'X-MessageID' => uniqid('msg-', true),
-);
+];
 
 $response = Yii::$app->daraja->iot(
     EndpointCatalog::IOT_GET_ALL_MESSAGES,
-    array('vpnGroup' => 'MY-GROUP'),
+    ['vpnGroup' => 'MY-GROUP'],
     $headers,
-    array('pageNo' => 1, 'pageSize' => 10)
+    ['pageNo' => 1, 'pageSize' => 10]
 );
 ```
 
@@ -651,9 +651,9 @@ Search messages:
 ```php
 $response = Yii::$app->daraja->iot(
     EndpointCatalog::IOT_SEARCH_MESSAGES,
-    array('searchValue' => 'hello', 'vpnGroup' => 'MY-GROUP', 'username' => 'admin'),
+    ['searchValue' => 'hello', 'vpnGroup' => 'MY-GROUP', 'username' => 'admin'],
     $headers,
-    array('pageNo' => 1, 'pageSize' => 5)
+    ['pageNo' => 1, 'pageSize' => 5]
 );
 ```
 
@@ -662,12 +662,12 @@ Send one message:
 ```php
 $response = Yii::$app->daraja->iot(
     EndpointCatalog::IOT_SEND_SINGLE_MESSAGE,
-    array(
+    [
         'msisdn' => '254700000000',
         'message' => 'Test message',
         'vpnGroup' => 'MY-GROUP',
         'username' => 'admin',
-    ),
+    ],
     $headers
 );
 ```
@@ -677,7 +677,7 @@ SIM activation:
 ```php
 $response = Yii::$app->daraja->iot(
     EndpointCatalog::IOT_SIM_ACTIVATION,
-    array('msisdn' => '254700000000', 'vpnGroup' => 'MY-GROUP', 'username' => 'admin'),
+    ['msisdn' => '254700000000', 'vpnGroup' => 'MY-GROUP', 'username' => 'admin'],
     $headers
 );
 ```
