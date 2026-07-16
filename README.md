@@ -2,7 +2,14 @@
 
 Yii2 Composer extension generated from `Safaricom APIs Copy.postman_collection.json`.
 
-It supports PHP `>=5.6` and newer PHP versions by avoiding scalar type declarations and return types. It uses `yiisoft/yii2-httpclient` for HTTP transport.
+It supports PHP `>=5.4` through current PHP versions supported by Yii2. The source avoids PHP 7+ syntax, scalar type declarations, return types, nullable types, short arrays, and other syntax that breaks older Yii2 projects. It uses `yiisoft/yii2-httpclient` for HTTP transport.
+
+## Compatibility
+
+- PHP `5.4+`
+- Yii2 `2.0.6+`
+- PHPUnit `4.8+` through `9.x` for the included tests
+- Composer package name: `josemodi97/yii2-safaricom-daraja`
 
 ## Install
 

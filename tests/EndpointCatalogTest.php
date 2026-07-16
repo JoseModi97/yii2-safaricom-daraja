@@ -1,9 +1,18 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
 use Safaricom\Daraja\EndpointCatalog;
 
-class EndpointCatalogTest extends TestCase
+if (class_exists('PHPUnit\Framework\TestCase')) {
+    abstract class EndpointCatalogTestCase extends PHPUnit\Framework\TestCase
+    {
+    }
+} else {
+    abstract class EndpointCatalogTestCase extends PHPUnit_Framework_TestCase
+    {
+    }
+}
+
+class EndpointCatalogTest extends EndpointCatalogTestCase
 {
     public function testCollectionEndpointsAreRegistered()
     {
