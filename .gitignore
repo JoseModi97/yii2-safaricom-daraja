@@ -1,0 +1,4 @@
+/vendor/
+/composer.lock
+/Safaricom APIs Copy.postman_collection.json
+/.phpunit.result.cache
