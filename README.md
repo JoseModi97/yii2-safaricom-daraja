@@ -15,13 +15,17 @@ The code supports PHP `>=5.4` through current PHP versions supported by Yii2. It
 
 ## Installation
 
+All paths in this guide are relative to the root of the Yii2 application that will use this package. For a basic Yii2 app, that is the folder that contains `composer.json`, `config/`, `controllers/`, `models/`, and `views/`.
+
 After publishing to Packagist:
 
 ```bash
 composer require josemodi97/yii2-safaricom-daraja
 ```
 
-If the package is kept in a local folder, add a path repository to the consuming Yii2 app:
+If the package is kept in a local folder, edit the consuming Yii2 app's `composer.json`:
+
+Path from Yii2 app root: `composer.json`
 
 ```json
 {
@@ -45,7 +49,15 @@ composer update josemodi97/yii2-safaricom-daraja
 
 ## Yii2 Configuration
 
-Add the component to `config/web.php` or `config/main.php`.
+Add the component to the Yii2 application config.
+
+Path from Yii2 app root for a basic app: `config/web.php`
+
+Path from Yii2 app root for an advanced app:
+
+- Frontend: `frontend/config/main.php`
+- Backend: `backend/config/main.php`
+- Console: `console/config/main.php`
 
 ```php
 'components' => array(
@@ -60,7 +72,13 @@ Add the component to `config/web.php` or `config/main.php`.
 
 Use `environment => 'production'` for `https://api.safaricom.co.ke`.
 
-Recommended app params:
+Recommended app params can go in the same config file, or in your Yii params file.
+
+Common paths from Yii2 app root:
+
+- Basic app config: `config/web.php`
+- Basic app params: `config/params.php`
+- Advanced app common params: `common/config/params.php`
 
 ```php
 'params' => array(
@@ -76,6 +94,12 @@ Recommended app params:
 Do not hard-code real consumer keys, secrets, passkeys, initiator passwords, or API keys in code. The Postman collection may contain sample values; move all secrets to environment variables.
 
 ## Basic Usage
+
+Place these calls inside your own controller action, service class, console command, or model method. The MVC example below uses these paths:
+
+- Form model: `models/StkPushForm.php`
+- Controller: `controllers/DarajaController.php`
+- Optional payment view: `views/daraja/stk-push.php`
 
 Generate an OAuth access token:
 
@@ -118,7 +142,9 @@ A clean Yii2 integration usually looks like this:
 
 ## Example Model: STK Push Form
 
-Create `models/StkPushForm.php`.
+Create the form model.
+
+Path from Yii2 app root: `models/StkPushForm.php`
 
 ```php
 <?php
@@ -174,7 +200,9 @@ class StkPushForm extends Model
 
 ## Example Controller
 
-Create `controllers/DarajaController.php`.
+Create the controller.
+
+Path from Yii2 app root: `controllers/DarajaController.php`
 
 ```php
 <?php
@@ -269,6 +297,11 @@ $response = Yii::$app->daraja->stkQuery(array(
 
 ## C2B URL Registration and Simulation
 
+Put the registration/simulation calls in a controller action, console command, or service class. For example:
+
+- Controller path from Yii2 app root: `controllers/DarajaController.php`
+- Console command path from Yii2 app root: `commands/DarajaController.php`
+
 Register confirmation and validation URLs:
 
 ```php
@@ -292,7 +325,9 @@ $response = Yii::$app->daraja->c2bSimulate(array(
 ));
 ```
 
-Callback examples:
+Callback examples can be added as methods inside the same web controller.
+
+Path from Yii2 app root: `controllers/DarajaController.php`
 
 ```php
 public function actionC2bValidation()
@@ -313,6 +348,14 @@ public function actionC2bConfirmation()
 ```
 
 ## B2C, B2B, and B2Pochi
+
+Put these payout/request examples in your own service class, console command, or controller action.
+
+Suggested paths from Yii2 app root:
+
+- Service class: `components/DarajaService.php`
+- Console command: `commands/DarajaController.php`
+- Web controller: `controllers/DarajaController.php`
 
 Generate a security credential from your initiator password and Safaricom public certificate:
 
@@ -379,6 +422,14 @@ $response = Yii::$app->daraja->b2PochiPayment(array(
 
 ## Reversal, Transaction Status, and Account Balance
 
+Put these examples in your own service class, console command, or controller action.
+
+Suggested paths from Yii2 app root:
+
+- Service class: `components/DarajaService.php`
+- Console command: `commands/DarajaController.php`
+- Web controller: `controllers/DarajaController.php`
+
 Reverse a transaction:
 
 ```php
@@ -431,6 +482,14 @@ $response = Yii::$app->daraja->accountBalance(array(
 
 ## M-Pesa Ratiba Standing Orders
 
+Put these examples in your own service class, console command, or controller action.
+
+Suggested paths from Yii2 app root:
+
+- Service class: `components/DarajaService.php`
+- Console command: `commands/DarajaController.php`
+- Web controller: `controllers/DarajaController.php`
+
 Create a standing order for Paybill:
 
 ```php
@@ -471,6 +530,14 @@ $response = Yii::$app->daraja->ratibaCreateBuyGoods(array(
 
 ## Lipa na Bonga
 
+Put these examples in your own service class, console command, or controller action.
+
+Suggested paths from Yii2 app root:
+
+- Service class: `components/DarajaService.php`
+- Console command: `commands/DarajaController.php`
+- Web controller: `controllers/DarajaController.php`
+
 Redeem Bonga points to Paybill:
 
 ```php
@@ -494,6 +561,14 @@ $response = Yii::$app->daraja->lipaNaBongaCalculatePoints(array(
 
 ## IMSI and SWAP CheckATI
 
+Put this example in your own service class, console command, or controller action.
+
+Suggested paths from Yii2 app root:
+
+- Service class: `components/DarajaService.php`
+- Console command: `commands/DarajaController.php`
+- Web controller: `controllers/DarajaController.php`
+
 ```php
 $response = Yii::$app->daraja->imsiCheckAti(array(
     'customerNumber' => '254700000000',
@@ -505,6 +580,14 @@ $response = Yii::$app->daraja->swapCheckAti(array(
 ```
 
 ## Pull Transactions API
+
+Put these examples in your own service class, console command, or controller action.
+
+Suggested paths from Yii2 app root:
+
+- Service class: `components/DarajaService.php`
+- Console command: `commands/DarajaController.php`
+- Web controller: `controllers/DarajaController.php`
 
 Register a callback URL:
 
@@ -529,6 +612,14 @@ $response = Yii::$app->daraja->pullQuery(array(
 ```
 
 ## IoT SIM Portal APIs
+
+Put these examples in your own service class, console command, or controller action.
+
+Suggested paths from Yii2 app root:
+
+- Service class: `components/DarajaService.php`
+- Console command: `commands/DarajaController.php`
+- Web controller: `controllers/DarajaController.php`
 
 The IoT SIM portal endpoints from the collection use the same `request()` engine, but they commonly need additional headers such as `x-api-key`, `x-source-system`, `X-MSISDN`, `X-App`, and `X-MessageID`. Use `Daraja::iot($endpointKey, $data, $headers, $query)`.
 
@@ -679,6 +770,10 @@ All paths use the configured base URL:
 | `IOT_SUSPEND_UNSUSPEND_SUB` | POST | `/simportal/v1/suspend_unsuspend_sub` |
 
 ## Callback and Result URL Notes
+
+Callback actions belong in a web controller because Safaricom calls them over HTTPS.
+
+Suggested path from Yii2 app root: `controllers/DarajaController.php`
 
 Safaricom sends many responses asynchronously. Any payload with `ResultURL`, `QueueTimeOutURL`, `CallBackURL`, `ConfirmationURL`, or `ValidationURL` must point to a publicly reachable HTTPS URL.
 
