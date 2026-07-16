@@ -1,6 +1,6 @@
 {
     "name": "josemodi97/yii2-safaricom-daraja",
-    "description": "Yii2 Composer extension for Safaricom Daraja API requests based on the provided Postman collection.",
+    "description": "Yii2 component for Safaricom Daraja, M-Pesa, Ratiba, B2B, B2C, C2B, STK Push, Pull Transactions, Lipa na Bonga, IMSI/SWAP, and IoT SIM portal API requests.",
     "type": "yii2-extension",
     "keywords": ["yii2", "daraja", "mpesa", "safaricom", "safaricom-daraja", "mobile-money", "api-client", "composer-extension"],
     "homepage": "https://github.com/JoseModi97/yii2-safaricom-daraja",

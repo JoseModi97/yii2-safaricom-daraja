@@ -83,7 +83,12 @@ Suggested metadata:
 - Name: `josemodi97/yii2-safaricom-daraja`
 - Category: `Web Service`
 - Tags: `yii2`, `daraja`, `mpesa`, `safaricom`, `api-client`, `mobile-money`
-- Summary: `Yii2 component for Safaricom Daraja, M-Pesa, Ratiba, B2B, B2C, C2B, STK Push, Pull Transactions, Lipa na Bonga, IMSI/SWAP, and IoT SIM portal API requests.`
+
+Yii may not show a separate summary field. In that case, the summary comes from the Composer package description:
+
+```text
+Yii2 component for Safaricom Daraja, M-Pesa, Ratiba, B2B, B2C, C2B, STK Push, Pull Transactions, Lipa na Bonga, IMSI/SWAP, and IoT SIM portal API requests.
+```
 
 ## 4. After Publishing
 
