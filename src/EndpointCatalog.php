@@ -82,4 +82,14 @@ class EndpointCatalog
         $endpoints = self::all();
         return isset($endpoints[$key]) ? $endpoints[$key] : null;
     }
+
+    public static function keys()
+    {
+        return array_keys(self::all());
+    }
+
+    public static function has($key)
+    {
+        return self::get($key) !== null;
+    }
 }

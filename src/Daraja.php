@@ -51,7 +51,7 @@ class Daraja extends Component
             ->setUrl(array($endpoint['path'], 'grant_type' => 'client_credentials'))
             ->addHeaders(array('Authorization' => 'Basic ' . base64_encode($this->consumerKey . ':' . $this->consumerSecret)));
 
-        $data = $this->send($request);
+        $data = $this->send($request, EndpointCatalog::OAUTH_TOKEN);
         if (!isset($data['access_token'])) {
             throw new DarajaException('Safaricom OAuth response did not contain access_token.');
         }
@@ -76,7 +76,8 @@ class Daraja extends Component
         }
 
         $headers = ArrayHelper::merge($this->defaultHeaders, isset($options['headers']) ? $options['headers'] : array());
-        if (!isset($endpoint['auth']) || $endpoint['auth'] !== 'basic') {
+        $needsBearer = !isset($endpoint['auth']) || $endpoint['auth'] !== 'basic';
+        if ($needsBearer && (!isset($options['auth']) || $options['auth'] !== false) && !$this->hasHeader($headers, 'Authorization')) {
             $headers['Authorization'] = 'Bearer ' . $this->getAccessToken();
         }
 
@@ -92,10 +93,11 @@ class Daraja extends Component
             ->addHeaders($headers);
 
         if (strtoupper($endpoint['method']) !== 'GET') {
-            $request->setFormat($this->requestFormat)->setData($data);
+            $format = isset($options['format']) ? $options['format'] : $this->requestFormat;
+            $request->setFormat($format)->setData($data);
         }
 
-        return $this->send($request);
+        return $this->send($request, $endpointKey);
     }
 
     public function getAccessToken()
@@ -106,6 +108,38 @@ class Daraja extends Component
 
         $this->generateAccessToken();
         return $this->accessToken;
+    }
+
+    public function setAccessToken($accessToken, $expiresIn = null)
+    {
+        $this->accessToken = $accessToken;
+        if ($expiresIn === null) {
+            $this->_tokenExpiresAt = 0;
+        } else {
+            $this->_tokenExpiresAt = time() + max(0, (int) $expiresIn);
+        }
+
+        return $this;
+    }
+
+    public function getTokenExpiresAt()
+    {
+        return $this->_tokenExpiresAt;
+    }
+
+    public function getEndpoint($endpointKey)
+    {
+        return EndpointCatalog::get($endpointKey);
+    }
+
+    public function hasEndpoint($endpointKey)
+    {
+        return EndpointCatalog::get($endpointKey) !== null;
+    }
+
+    public function getEndpoints()
+    {
+        return EndpointCatalog::all();
     }
 
     public function stkPush(array $data)
@@ -203,6 +237,76 @@ class Daraja extends Component
         return $this->request($endpointKey, $data, array('headers' => $headers, 'query' => $query));
     }
 
+    public function iotSearchMessages(array $data, array $headers = array(), array $query = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_SEARCH_MESSAGES, $data, $headers, $query);
+    }
+
+    public function iotFilterMessages(array $data, array $headers = array(), array $query = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_FILTER_MESSAGES, $data, $headers, $query);
+    }
+
+    public function iotDeleteMessageThread(array $data, array $headers = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_DELETE_MESSAGE_THREAD, $data, $headers);
+    }
+
+    public function iotGetAllMessages(array $data, array $headers = array(), array $query = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_GET_ALL_MESSAGES, $data, $headers, $query);
+    }
+
+    public function iotSendSingleMessage(array $data, array $headers = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_SEND_SINGLE_MESSAGE, $data, $headers);
+    }
+
+    public function iotDeleteMessage(array $data, array $headers = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_DELETE_MESSAGE, $data, $headers);
+    }
+
+    public function iotAllSims(array $data, array $headers = array(), array $query = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_ALL_SIMS, $data, $headers, $query);
+    }
+
+    public function iotQueryLifecycleStatus(array $data, array $headers = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_QUERY_LIFECYCLE_STATUS, $data, $headers);
+    }
+
+    public function iotQueryCustomerInfo(array $data, array $headers = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_QUERY_CUSTOMER_INFO, $data, $headers);
+    }
+
+    public function iotSimActivation(array $data, array $headers = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_SIM_ACTIVATION, $data, $headers);
+    }
+
+    public function iotGetActivationTrends(array $data, array $headers = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_GET_ACTIVATION_TRENDS, $data, $headers);
+    }
+
+    public function iotRenameAsset(array $data, array $headers = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_RENAME_ASSET, $data, $headers);
+    }
+
+    public function iotGetLocationInfo(array $data, array $headers = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_GET_LOCATION_INFO, $data, $headers);
+    }
+
+    public function iotSuspendUnsuspendSub(array $data, array $headers = array())
+    {
+        return $this->iot(EndpointCatalog::IOT_SUSPEND_UNSUSPEND_SUB, $data, $headers);
+    }
+
     public function generateStkPassword($businessShortCode, $passkey, $timestamp = null)
     {
         if ($timestamp === null) {
@@ -231,16 +335,32 @@ class Daraja extends Component
         return base64_encode($encrypted);
     }
 
-    protected function send($request)
+    protected function send($request, $endpointKey = null)
     {
-        $response = $request->send();
+        try {
+            $response = $request->send();
+        } catch (\Exception $e) {
+            throw new DarajaException('Safaricom API request could not be sent: ' . $e->getMessage(), 0, $e, null, null, $endpointKey);
+        }
+
         $data = $response->getData();
 
         if (!$response->getIsOk()) {
-            $message = is_array($data) ? json_encode($data) : (string) $response->content;
-            throw new DarajaException('Safaricom API request failed with HTTP ' . $response->statusCode . ': ' . $message);
+            $responseData = $data ? $data : $response->content;
+            throw DarajaException::forHttpResponse($response->statusCode, $responseData, $endpointKey);
         }
 
         return $data;
+    }
+
+    protected function hasHeader(array $headers, $name)
+    {
+        foreach ($headers as $headerName => $value) {
+            if (strtolower($headerName) === strtolower($name)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
