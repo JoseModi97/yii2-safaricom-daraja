@@ -91,6 +91,69 @@ Common paths from Yii2 app root:
 ],
 ```
 
+## Environment Variables
+
+Create a `.env` file in the Yii2 application root if your app uses dotenv-style environment loading.
+
+Path from Yii2 basic app root: `.env`
+
+Path from Yii2 advanced project root: `.env`
+
+```dotenv
+DARAJA_ENVIRONMENT=sandbox
+DARAJA_CONSUMER_KEY=your_consumer_key
+DARAJA_CONSUMER_SECRET=your_consumer_secret
+DARAJA_SHORT_CODE=174379
+DARAJA_PASSKEY=your_lipa_na_mpesa_passkey
+DARAJA_INITIATOR_NAME=your_initiator_name
+DARAJA_INITIATOR_PASSWORD=your_initiator_password
+DARAJA_CALLBACK_BASE_URL=https://your-domain.example
+DARAJA_IOT_API_KEY=your_iot_api_key
+DARAJA_IOT_MSISDN=254700000000
+```
+
+Yii2 does not load `.env` files by default in every template. If your application already loads `.env`, `getenv('DARAJA_CONSUMER_KEY')` will work as shown above. If it does not, install and bootstrap a dotenv loader in the Yii2 application, or set these variables in your server environment.
+
+If you choose the dotenv approach, install the loader in the Yii2 application:
+
+```bash
+composer require vlucas/phpdotenv
+```
+
+Example using `vlucas/phpdotenv` in a Yii2 basic app:
+
+Path from Yii2 app root: `web/index.php`
+
+```php
+require __DIR__ . '/../vendor/autoload.php';
+
+if (class_exists('Dotenv\\Dotenv')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+    $dotenv->safeLoad();
+}
+
+require __DIR__ . '/../vendor/yiisoft/yii2/Yii.php';
+```
+
+Example using `vlucas/phpdotenv` in a Yii2 advanced app:
+
+Common entry files from project root:
+
+- Frontend: `frontend/web/index.php`
+- Backend: `backend/web/index.php`
+- Console: `yii`
+
+Load `.env` before requiring `common/config/bootstrap.php` or before reading config files:
+
+```php
+require __DIR__ . '/../../vendor/autoload.php';
+
+if (class_exists('Dotenv\\Dotenv')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__, 2));
+    $dotenv->safeLoad();
+}
+```
+
 Do not hard-code real consumer keys, secrets, passkeys, initiator passwords, or API keys in code. The Postman collection may contain sample values; move all secrets to environment variables.
 
 ## Basic Usage
