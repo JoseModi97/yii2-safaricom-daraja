@@ -2,8 +2,20 @@
     "name": "josemodi97/yii2-safaricom-daraja",
     "description": "Yii2 Composer extension for Safaricom Daraja API requests based on the provided Postman collection.",
     "type": "yii2-extension",
-    "keywords": ["yii2", "daraja", "mpesa", "safaricom", "composer-extension"],
+    "keywords": ["yii2", "daraja", "mpesa", "safaricom", "safaricom-daraja", "mobile-money", "api-client", "composer-extension"],
+    "homepage": "https://github.com/JoseModi97/yii2-safaricom-daraja",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "JoseModi97",
+            "homepage": "https://github.com/JoseModi97"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/JoseModi97/yii2-safaricom-daraja/issues",
+        "source": "https://github.com/JoseModi97/yii2-safaricom-daraja",
+        "docs": "https://github.com/JoseModi97/yii2-safaricom-daraja#readme"
+    },
     "require": {
         "php": ">=5.4",
         "yiisoft/yii2": "^2.0.6",
