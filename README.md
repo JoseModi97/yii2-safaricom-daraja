@@ -8,7 +8,9 @@ The code supports PHP `>=5.4` through current PHP versions supported by Yii2. It
 
 ## Example Application
 
-[JoseModi97/use-daraja](https://github.com/JoseModi97/use-daraja) is a Yii2 application repository that uses this extension and demonstrates all of its supported values and configuration options.
+[JoseModi97/use-daraja](https://github.com/JoseModi97/use-daraja) is a Yii2 advanced template application repository that uses this extension and demonstrates all of its supported values and configuration options.
+
+For Yii2 basic template applications, use the same extension configuration in `config/web.php` from the application root.
 
 ## Compatibility
 
@@ -55,9 +57,15 @@ composer update josemodi97/yii2-safaricom-daraja
 
 Add the component to the Yii2 application config.
 
-Basic Yii2 template path from app root: `config/web.php`
+### Basic Yii2 Template
 
-Advanced Yii2 template paths from project root:
+Add the component in the basic application config:
+
+- App config: `config/web.php`
+
+### Advanced Yii2 Template
+
+Add the component in each application config that needs Daraja access:
 
 - Frontend: `frontend/config/main.php`
 - Backend: `backend/config/main.php`
