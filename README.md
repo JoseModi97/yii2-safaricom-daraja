@@ -6,6 +6,10 @@ This package wraps the Safaricom Daraja and related sandbox APIs in a Yii2 compo
 
 The code supports PHP `>=5.4` through current PHP versions supported by Yii2. It avoids PHP 7+ syntax, scalar type declarations, return types, nullable types, short arrays, and other syntax that breaks older Yii2 projects. HTTP transport is handled by `yiisoft/yii2-httpclient`.
 
+## Example Application
+
+[JoseModi97/use-daraja](https://github.com/JoseModi97/use-daraja) is a Yii2 application repository that uses this extension and demonstrates all of its supported values and configuration options.
+
 ## Compatibility
 
 - PHP `5.4+`
