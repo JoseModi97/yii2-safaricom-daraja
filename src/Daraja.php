@@ -19,6 +19,7 @@ class Daraja extends Component
     public $httpClientConfig = array();
     public $defaultHeaders = array('Content-Type' => 'application/json');
     public $requestFormat = 'json';
+    public $callbackBaseUrl;
 
     private $_httpClient;
     private $_tokenExpiresAt = 0;
@@ -26,6 +27,42 @@ class Daraja extends Component
     public function getBaseUrl()
     {
         return $this->environment === 'production' ? $this->productionBaseUrl : $this->sandboxBaseUrl;
+    }
+
+    public function getCallbackBaseUrl($fallbackToRequest = true)
+    {
+        if ($this->callbackBaseUrl !== null && trim($this->callbackBaseUrl) !== '') {
+            return rtrim(trim($this->callbackBaseUrl), '/');
+        }
+
+        if (!$fallbackToRequest || !class_exists('\Yii', false) || !Yii::$app || !Yii::$app->has('request')) {
+            return null;
+        }
+
+        $request = Yii::$app->get('request');
+        if (!method_exists($request, 'getHostInfo') || !method_exists($request, 'getBaseUrl')) {
+            return null;
+        }
+
+        $hostInfo = $request->getHostInfo();
+        if ($hostInfo === null || $hostInfo === '') {
+            return null;
+        }
+
+        return rtrim($hostInfo . $request->getBaseUrl(), '/');
+    }
+
+    public function buildCallbackUrl($path, $baseUrl = null)
+    {
+        if ($baseUrl === null) {
+            $baseUrl = $this->getCallbackBaseUrl();
+        }
+
+        if ($baseUrl === null || trim($baseUrl) === '') {
+            throw new DarajaException('callbackBaseUrl is not configured and no web request is available to derive it.');
+        }
+
+        return rtrim(trim($baseUrl), '/') . '/' . ltrim($path, '/');
     }
 
     public function getHttpClient()

@@ -78,11 +78,14 @@ Add the component in each application config that needs Daraja access:
         'environment' => 'sandbox',
         'consumerKey' => getenv('DARAJA_CONSUMER_KEY'),
         'consumerSecret' => getenv('DARAJA_CONSUMER_SECRET'),
+        'callbackBaseUrl' => getenv('DARAJA_CALLBACK_BASE_URL') ?: null,
     ],
 ],
 ```
 
 Use `environment => 'production'` for `https://api.safaricom.co.ke`.
+
+`callbackBaseUrl` is optional in normal web requests. If it is not set, the component tries to derive the base URL from the current Yii request, for example `https://housing.example.com`. Set it explicitly for console jobs, queue workers, reverse-proxy deployments, or local development through a public tunnel.
 
 Recommended app params can go in the same config file, or in your Yii params file.
 
@@ -99,7 +102,6 @@ Common paths from Yii2 app root:
     'daraja.initiatorName' => getenv('DARAJA_INITIATOR_NAME'),
     'daraja.initiatorPassword' => getenv('DARAJA_INITIATOR_PASSWORD'),
     'daraja.certificatePath' => '@app/certs/SafaricomSandboxCertificate.cer',
-    'daraja.callbackBaseUrl' => getenv('DARAJA_CALLBACK_BASE_URL'),
 ],
 ```
 
@@ -265,7 +267,7 @@ class StkPushForm extends Model
             'PartyA' => $this->phoneNumber,
             'PartyB' => $shortCode,
             'PhoneNumber' => $this->phoneNumber,
-            'CallBackURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/stk-callback',
+            'CallBackURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/stk-callback'),
             'AccountReference' => $this->accountReference,
             'TransactionDesc' => $this->transactionDesc ? $this->transactionDesc : 'Payment',
         ]);
@@ -353,7 +355,7 @@ $response = Yii::$app->daraja->stkPush([
     'PartyA' => '254700000000',
     'PartyB' => $shortCode,
     'PhoneNumber' => '254700000000',
-    'CallBackURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/stk-callback',
+    'CallBackURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/stk-callback'),
     'AccountReference' => 'INV-1001',
     'TransactionDesc' => 'Invoice payment',
 ]);
@@ -383,8 +385,8 @@ Register confirmation and validation URLs:
 $response = Yii::$app->daraja->c2bRegisterUrl([
     'ShortCode' => Yii::$app->params['daraja.shortCode'],
     'ResponseType' => 'Completed',
-    'ConfirmationURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/c2b-confirmation',
-    'ValidationURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/c2b-validation',
+    'ConfirmationURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/c2b-confirmation'),
+    'ValidationURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/c2b-validation'),
 ]);
 ```
 
@@ -452,8 +454,8 @@ $response = Yii::$app->daraja->b2cPayment([
     'PartyA' => Yii::$app->params['daraja.shortCode'],
     'PartyB' => '254700000000',
     'Remarks' => 'Payout',
-    'QueueTimeOutURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/timeout',
-    'ResultURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/result',
+    'QueueTimeOutURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/timeout'),
+    'ResultURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/result'),
     'Occasion' => 'Refund',
 ]);
 ```
@@ -472,8 +474,8 @@ $response = Yii::$app->daraja->b2bPayment([
     'PartyB' => '600000',
     'AccountReference' => 'INV-1001',
     'Remarks' => 'Supplier payment',
-    'QueueTimeOutURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/timeout',
-    'ResultURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/result',
+    'QueueTimeOutURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/timeout'),
+    'ResultURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/result'),
 ]);
 ```
 
@@ -489,8 +491,8 @@ $response = Yii::$app->daraja->b2PochiPayment([
     'PartyA' => Yii::$app->params['daraja.shortCode'],
     'PartyB' => '254700000000',
     'Remarks' => 'B2Pochi payment',
-    'QueueTimeOutURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/timeout',
-    'ResultURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/result',
+    'QueueTimeOutURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/timeout'),
+    'ResultURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/result'),
     'Occasion' => 'Payment',
 ]);
 ```
@@ -516,8 +518,8 @@ $response = Yii::$app->daraja->reversal([
     'Amount' => '100',
     'ReceiverParty' => Yii::$app->params['daraja.shortCode'],
     'RecieverIdentifierType' => '4',
-    'ResultURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/result',
-    'QueueTimeOutURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/timeout',
+    'ResultURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/result'),
+    'QueueTimeOutURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/timeout'),
     'Remarks' => 'Customer refund',
     'Occasion' => 'Refund',
 ]);
@@ -533,8 +535,8 @@ $response = Yii::$app->daraja->transactionStatus([
     'TransactionID' => 'ABC123XYZ',
     'PartyA' => Yii::$app->params['daraja.shortCode'],
     'IdentifierType' => '4',
-    'ResultURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/result',
-    'QueueTimeOutURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/timeout',
+    'ResultURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/result'),
+    'QueueTimeOutURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/timeout'),
     'Remarks' => 'Status query',
     'Occasion' => 'Status',
 ]);
@@ -550,8 +552,8 @@ $response = Yii::$app->daraja->accountBalance([
     'PartyA' => Yii::$app->params['daraja.shortCode'],
     'IdentifierType' => '4',
     'Remarks' => 'Balance query',
-    'QueueTimeOutURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/timeout',
-    'ResultURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/result',
+    'QueueTimeOutURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/timeout'),
+    'ResultURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/result'),
 ]);
 ```
 
@@ -575,7 +577,7 @@ $response = Yii::$app->daraja->ratibaCreatePaybill([
     'Amount' => '100',
     'PartyA' => '254700000000',
     'ReceiverPartyIdentifierType' => '4',
-    'CallBackURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/ratiba-callback',
+    'CallBackURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/ratiba-callback'),
     'AccountReference' => 'ACC-1001',
     'TransactionDesc' => 'Monthly payment',
     'Frequency' => '1',
@@ -594,7 +596,7 @@ $response = Yii::$app->daraja->ratibaCreateBuyGoods([
     'Amount' => '100',
     'PartyA' => '254700000000',
     'ReceiverPartyIdentifierType' => '2',
-    'CallBackURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/ratiba-callback',
+    'CallBackURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/ratiba-callback'),
     'AccountReference' => 'ACC-1001',
     'TransactionDesc' => 'Merchant payment',
     'Frequency' => '1',
@@ -671,7 +673,7 @@ $response = Yii::$app->daraja->pullRegister([
     'ShortCode' => Yii::$app->params['daraja.shortCode'],
     'RequestType' => 'Pull',
     'NominatedNumber' => '254700000000',
-    'CallBackURL' => Yii::$app->params['daraja.callbackBaseUrl'] . '/daraja/pull-callback',
+    'CallBackURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/pull-callback'),
 ]);
 ```
 
@@ -852,11 +854,21 @@ Suggested path from Yii2 app root: `controllers/DarajaController.php`
 
 Safaricom sends many responses asynchronously. Any payload with `ResultURL`, `QueueTimeOutURL`, `CallBackURL`, `ConfirmationURL`, or `ValidationURL` must point to a publicly reachable HTTPS URL.
 
-For local development, expose your Yii2 app through a secure tunnel and set:
+Use the component helper when building callback payload fields:
+
+```php
+'CallBackURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/stk-callback'),
+'ResultURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/result'),
+'QueueTimeOutURL' => Yii::$app->daraja->buildCallbackUrl('/daraja/timeout'),
+```
+
+For a deployed housing application, you can omit `callbackBaseUrl` when Yii sees the correct public host. If the app runs behind a proxy or a queue/console command builds the payload, configure it explicitly:
 
 ```bash
 DARAJA_CALLBACK_BASE_URL=https://your-public-url.example
 ```
+
+`localhost` cannot receive Safaricom callbacks directly because it is only reachable from your own machine. For local development, expose the Yii app through a secure public HTTPS tunnel, then use that tunnel URL as `DARAJA_CALLBACK_BASE_URL`.
 
 Always store the raw callback JSON before transforming it. This makes reconciliation much easier when Safaricom sends unexpected fields.
 
